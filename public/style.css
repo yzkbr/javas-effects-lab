@@ -1,0 +1,333 @@
+/* Visualização: todos os valores ajustáveis chegam como variáveis CSS. */
+:root {
+  --page-bg: #000000;
+  --page-padding: 20px;
+  --title-color: #333333;
+  --title-size: 48px;
+  --title-duration: 1.5s;
+  --text-color: #ffffff;
+  --text-size: 18px;
+  --button-color1: #007bff;
+  --button-color2: #7b2ff7;
+  --button-radius: 12px;
+  --button-font-size: 16px;
+  --button-py: 15px;
+  --button-px: 35px;
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: var(--page-padding);
+  overflow-x: hidden;
+  background: var(--page-bg);
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+}
+#cortina {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #000;
+  background-image: url('./imagens/estampa.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+#cortina canvas { display: block; width: 100%; height: 100%; }
+.conteudo { position: relative; z-index: 1; width: 100%; }
+h1 {
+  color: var(--title-color);
+  font-size: var(--title-size);
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-shadow: 0 0 5px rgba(255,255,255,.95), 0 0 14px rgba(255,255,255,.75);
+  animation: aparecer var(--title-duration) ease-out both;
+}
+@keyframes aparecer { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+p { color: var(--text-color); font-size: var(--text-size); line-height: 1.6; margin-bottom: 20px; text-shadow: 0 2px 5px rgba(0,0,0,.9); }
+.botao {
+  background: linear-gradient(135deg,var(--button-color1),var(--button-color2));
+  color: #fff;
+  padding: var(--button-py) var(--button-px);
+  border: 0;
+  border-radius: var(--button-radius);
+  font-size: var(--button-font-size);
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,123,255,.3);
+  transition: transform .3s ease, box-shadow .3s ease, filter .3s ease;
+}
+.botao:not(:disabled):hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(123,47,247,.5); filter: brightness(1.1); }
+.botao:not(:disabled):active { transform: scale(.95); box-shadow: 0 3px 10px rgba(0,0,0,.2); }
+.botao:focus-visible { outline: 3px solid #ffcc00; outline-offset: 4px; }
+#aviso-webgl { position: fixed; z-index: 10; bottom: 12px; left: 12px; max-width: 420px; padding: 12px; background: #6c1010; color: white; border-radius: 8px; font-size: 13px; }
+#aviso-webgl[hidden] { display: none; }
+@media(max-width:600px) { h1 { font-size: min(var(--title-size),32px); } p { font-size: min(var(--text-size),16px); } .botao { max-width: 300px; width: 100%; } }
+@media(prefers-reduced-motion:reduce) { h1 { animation: none !important; } .botao { transition: none; } }
+
+
+/* ================================================================
+   PERGAMINHO FEUDAL — ASSETS FORNECIDOS PELO USUÁRIO
+   As duas hastes são imagens reais do rolo fechado; o papel usa
+   uma região da referência aberta, com manchas e fibras originais.
+   A animação do JS controla clip-path e a posição da haste inferior.
+================================================================ */
+.pergaminho {
+  position:relative;
+  width:min(570px,92vw);
+  margin:30px auto 75px;
+  isolation:isolate;
+  perspective:1000px;
+  filter:drop-shadow(0 24px 20px rgba(0,0,0,.8));
+  transform-origin:top center;
+}
+.pergaminho[hidden] {display:none!important}
+.rolo {
+  position:relative;
+  z-index:3;
+  width:calc(100% + 46px);
+  height:clamp(52px,12vw,86px);
+  margin:0 -23px;
+  background:url('./imagens/rolo-sem-pingente.png') center center/100% 100% no-repeat;
+  filter:drop-shadow(0 7px 5px rgba(0,0,0,.65));
+  transform-origin:center;
+}
+.rolo-superior {margin-bottom:-9px}
+.rolo-inferior {margin-top:-9px}
+.corda {
+  position:absolute;
+  bottom:-26px;
+  width:24px;
+  height:44px;
+  background:url('./imagens/08_cordao_vermelho.png') center/contain no-repeat;
+  filter:drop-shadow(0 3px 2px #0009);
+  pointer-events:none;
+}
+.corda-esquerda {left:9%}
+.corda-direita {right:9%;transform:scaleX(-1)}
+.pergaminho-folha {
+  position:relative;
+  z-index:1;
+  overflow:hidden;
+  min-height:480px;
+  /* Sem moldura bege: recortes transparentes deixam a cortina aparecer. */
+  border:0;
+  -webkit-mask-image:url("./imagens/mascara-borda.png");
+  mask-image:url("./imagens/mascara-borda.png");
+  -webkit-mask-size:100% 100%;
+  mask-size:100% 100%;
+  background:
+    linear-gradient(90deg,rgba(60,27,9,.36),transparent 8%,transparent 92%,rgba(60,27,9,.34)),
+    url('./imagens/papel-feudal.jpg') center center/100% 100% no-repeat,
+    #cfa36b;
+  box-shadow:inset 0 0 22px #63371388,0 5px 18px #0007;
+  clip-path:inset(0 0 100% 0);
+  transform-origin:top center;
+}
+/* Brilho e sombra lentos: simulação visual de curvatura, sem distorcer letras. */
+.pergaminho-folha::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(100deg,rgba(66,34,14,.14),transparent 22%,rgba(255,244,210,.1) 50%,transparent 78%,rgba(66,34,14,.2));
+  mix-blend-mode:multiply;
+}
+.pergaminho.aberto .pergaminho-folha {animation:papel-vivo 7s ease-in-out infinite alternate}
+.pergaminho.aberto .rolo-superior {animation:haste-viva 7s ease-in-out infinite alternate}
+.pergaminho.aberto .rolo-inferior {animation:haste-viva 8s ease-in-out infinite alternate-reverse}
+@keyframes papel-vivo {
+  from {transform:perspective(900px) rotateX(.3deg) skewX(-.12deg)}
+  to {transform:perspective(900px) rotateX(-.5deg) skewX(.15deg)}
+}
+@keyframes haste-viva {from{rotate:-.2deg}to{rotate:.25deg}}
+.pergaminho-conteudo {position:relative;z-index:1;padding:35px 33px 43px;color:#352015}
+.pergaminho-selo {color:#821b20;font-weight:900;letter-spacing:.24em;font-size:13px}
+.pergaminho h2 {margin:12px 0 7px;color:#5b1719;font:700 clamp(24px,4vw,33px)/1.2 Georgia,serif;text-shadow:0 1px #e5c28a}
+.pergaminho .pergaminho-subtitulo {color:#70432d;text-shadow:none;font-size:14px;margin:0 0 20px}
+.lista-membros {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px;margin:0;padding:0;list-style:none;text-align:left;counter-reset:membros}
+.lista-membros li {color:#352015;padding:10px 5px;border-bottom:1px solid #79462888;font:clamp(14px,2.5vw,18px) Georgia,serif;opacity:0;text-shadow:0 1px #e4bb80}
+.lista-membros li::before {counter-increment:membros;content:counter(membros,decimal-leading-zero) '  ';color:#8d1b24;font-weight:bold}
+.pergaminho .pergaminho-historico {color:#6a3b29;text-shadow:none;font-size:13px;margin:24px 0 0}
+@media(max-width:480px) {
+  .pergaminho-conteudo {padding:24px 16px 34px}
+  .lista-membros {grid-template-columns:1fr}
+  .pergaminho-folha {min-height:540px}
+  .rolo {height:54px;width:calc(100% + 26px);margin-left:-13px;margin-right:-13px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .pergaminho-folha {clip-path:none!important;animation:none!important}
+  .rolo {animation:none!important}
+  .lista-membros li {opacity:1!important}
+}
+
+/* Cordas com pivô na parte superior: movimento físico pelo JS. */
+.corda { transform-origin:50% 0%; will-change:transform; }
+.corda-direita { transform:scaleX(-1) rotate(0deg); }
+/* Borda irregular permanece transparente durante o desenrolar. */
+.pergaminho-folha { background-clip:padding-box; }
+
+.pergaminho-folha.borda-lisa { -webkit-mask-image:none; mask-image:none; }
+
+/* =============================================================
+   FASE 3 — PINGENTES INDEPENDENTES E DOSSIÊS INTERATIVOS
+   A imagem do cilindro não contém mais o pingente fixo.
+============================================================= */
+.rolo .corda {
+  width: clamp(46px, 9vw, 72px);
+  height: clamp(58px, 11vw, 88px);
+  bottom: -49px;
+  left: 45%;
+  right: auto;
+  background-size: contain;
+  background-position: center top;
+  transform-origin: 50% 6%;
+  z-index: 4;
+  will-change: transform;
+}
+.rolo .corda-direita { left: 53%; }
+.rolo-superior { z-index: 5; }
+.rolo-inferior .corda { display: none; }
+.lista-membros .membro-link {
+  background: transparent; border: 0; color: inherit;
+  font: inherit; text-align: left; cursor: pointer;
+  padding: 3px 1px; border-radius: 4px;
+  transition: color .2s ease, text-shadow .2s ease;
+}
+.lista-membros .membro-link:hover,
+.lista-membros .membro-link:focus-visible {
+  font-weight: 900; color: var(--hover-member-color, #8d1521);
+  text-shadow: 0 0 2px #a52d29;
+}
+.lista-membros .membro-link:focus-visible { outline: 2px solid #8d1521; outline-offset: 2px; }
+.dossie[hidden] { display: none !important; }
+.dossie {
+  width: min(var(--card-width, 520px), 94vw);
+  max-height: min(80vh, 720px);
+  overflow-y: auto;
+  margin: 36px auto 80px;
+  padding: 22px 28px 30px;
+  color: #f5e5d1;
+  text-align: left;
+  background: linear-gradient(155deg, rgba(36, 14, 19, var(--card-opacity, .97)), rgba(12, 12, 16, var(--card-opacity, .97)));
+  border: 1px solid #9b3c3e;
+  border-radius: var(--card-radius, 22px);
+  box-shadow: 0 22px 70px #000c, inset 0 0 28px #6c172025;
+  position: relative;
+}
+.dossie-topo { display: flex; align-items: center; justify-content: space-between; color: #f08a8d; font-size: 12px; letter-spacing: .2em; font-weight: 800; }
+.dossie-fechar { background: transparent; border: 0; color: white; cursor: pointer; font-size: 30px; }
+.dossie-simbolo { text-align: center; color: #b82433; font-size: 58px; text-shadow: 0 3px 18px #a30a1780; }
+.dossie h2 { margin: 5px 0; color: #f7e6db; text-align: center; font: bold 30px Georgia, serif; }
+.dossie h3 { margin: 20px 0 5px; color: #f28e91; font-size: 15px; }
+.dossie p { color: #f0ded1; font-size: 15px; line-height: 1.7; text-shadow: none; margin: 5px 0; }
+.dossie .dossie-origem { text-align: center; color: #d1a5a4; font-size: 13px; }
+.dossie-voltar { display: block; margin: 25px auto 0; padding: 12px 24px; border: 1px solid #bf4d58; border-radius: 10px; background: #791a28; color: #fff; font-weight: 700; cursor: pointer; }
+.dossie-voltar:hover { background: #a12b3c; }
+@media(prefers-reduced-motion:reduce) { .membro-link { transition: none !important; } }
+
+/* FASE 3.2: substitui os pingentes rígidos por desenho físico flexível. */
+.rolo-superior .corda { display:none!important; }
+.rolo-superior .cordas-fisicas {
+  position:absolute; left:0; top:62%; z-index:7;
+  pointer-events:none; overflow:visible;
+  filter:drop-shadow(1px 2px 2px rgba(0,0,0,.7));
+}
+@media (prefers-reduced-motion:reduce){ .rolo-superior .cordas-fisicas{filter:none} }
+
+/* Fase 4: navegação por assuntos e efeitos independentes de cada integrante. */
+.dossie{max-height:min(85vh,850px);overflow-y:auto;z-index:8;}
+.dossie-menu{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0;padding:8px;border:1px solid #6a2b32;border-radius:12px;background:#100b10;}
+.dossie-menu button{font-size:12px;padding:7px 10px;border:1px solid #6d303a;border-radius:9px;background:#29151d;color:#ead7d7;cursor:pointer;}
+.dossie-menu button.ativo,.dossie-menu button:hover{background:#8b2434;color:white;}
+.dossie-detalhe{min-height:115px;border-left:3px solid #b62b40;padding:8px 14px;background:#160d13;border-radius:8px;}
+.efeito-personagem{position:fixed;inset:0;pointer-events:none;z-index:3;display:grid;place-items:center;overflow:hidden;}
+.itachi-olhos{display:flex;gap:clamp(80px,15vw,220px);transform:translateY(-18vh) scale(var(--eye-scale,1));opacity:var(--eye-opacity,.5);animation:eyes-reveal var(--fx-duration,1.5s) both;filter:drop-shadow(0 0 25px rgba(210,0,30,var(--fx-glow,.7)));}
+.itachi-olho{width:clamp(90px,17vw,210px);height:clamp(42px,8vw,98px);position:relative;overflow:hidden;border-radius:65% 15% 65% 15% / 85% 20% 80% 20%;background:radial-gradient(ellipse at 50% 70%,#e5d0c9,#a38b85 55%,#1b0a0e 76%);box-shadow:inset 0 13px 19px #080208,inset 0 -8px 14px #180b0e,0 0 22px #a000243b;transform:skewX(-6deg);}
+.itachi-olho:nth-child(2){transform:scaleX(-1) skewX(-6deg);}
+.itachi-iris{position:absolute;width:75px;height:75px;left:calc(50% - 37px);top:calc(50% - 37px);transform:translate(var(--look-x,0px),var(--look-y,0px));border-radius:50%;background:radial-gradient(circle,#120409 0 12%,#e10b27 13% 35%,#85000f 55%,#230208 73%);box-shadow:0 0 15px #e00632aa,inset 0 0 12px #1a0007;transition:transform .25s ease-out;}
+.mangekyo{position:absolute;inset:0;display:grid;place-items:center;font-size:64px;color:#160005;text-shadow:0 0 3px #100000;animation:iris-turn 19s linear infinite;}
+.eye-reflection{position:absolute;left:18%;top:14%;width:25%;height:15%;border-radius:50%;background:#fff;filter:blur(5px);opacity:var(--eye-shine,.8);}
+.itachi-olho:after{content:'';position:absolute;inset:0;background:linear-gradient(#13050b 0 4%,transparent 35% 70%,#150609 98%);pointer-events:none;}
+.itachi-olhos.piscando .itachi-olho{animation:blink .21s ease-in-out;}
+.fx-simbolo{font-size:clamp(130px,33vw,470px);opacity:calc(var(--fx-intensity,.8)*.35);color:#bb2438;text-shadow:0 0 70px currentColor;animation:fx-enter var(--fx-duration,1.5s) both;}
+.fx-pain .fx-simbolo{color:#9d87d7}.fx-konan .fx-simbolo{color:#d6d2d9}.fx-kisame .fx-simbolo{color:#3c95b6}.fx-deidara .fx-simbolo{color:#e8a43e}.fx-sasori .fx-simbolo{color:#ac5256}.fx-hidan .fx-simbolo{color:#cf1e34}.fx-kakuzu .fx-simbolo{color:#728e6d}.fx-zetsu .fx-simbolo{color:#668a48}.fx-obito .fx-simbolo{color:#a68dd4}
+.fx-saindo{opacity:0;transition:opacity .6s;}
+.dossie.queimando{animation:amaterasu-burn var(--burn-duration,1.8s) linear forwards;}
+.dossie.queimando:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 95%,#090509 5%,#35040d 28%,transparent 55%);mix-blend-mode:multiply;animation:fire-rise var(--burn-duration,1.8s) linear forwards;}
+@keyframes eyes-reveal{from{opacity:0;filter:blur(13px)}to{opacity:var(--eye-opacity,.5);filter:blur(0)}}
+@keyframes iris-turn{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{clip-path:inset(0 0 0 0)}45%{clip-path:inset(48% 0 48% 0)}}
+@keyframes fx-enter{from{opacity:0;transform:scale(.7) rotate(-15deg)}to{opacity:calc(var(--fx-intensity,.8)*.35);transform:scale(1) rotate(0)}}
+@keyframes amaterasu-burn{0%{clip-path:inset(0 0 0 0);filter:brightness(1)}70%{filter:brightness(.6) drop-shadow(0 0 18px #140006)}100%{clip-path:inset(0 0 100% 0);filter:brightness(0)}}
+@keyframes fire-rise{from{transform:translateY(90%)}to{transform:translateY(-95%)}}
+@media(prefers-reduced-motion:reduce){.itachi-olhos,.mangekyo,.fx-simbolo,.dossie.queimando{animation:none!important}}
+
+/* Fase 4.2 — Íris baseadas nas referências do usuário, sem glifo genérico. */
+.itachi-iris{background: #6b0711 url('imagens/olhos-itachi-referencia.png') center/cover no-repeat;}
+.itachi-iris .mangekyo{inset:0;background:transparent url('imagens/mangekyo-itachi.png') center/cover no-repeat;opacity:0;transform:scale(.85) rotate(-35deg);animation:none;transition:opacity var(--mangekyo-duration,.5s) ease,transform var(--mangekyo-duration,.5s) ease;}
+.itachi-olhos.mangekyo-ativo .mangekyo{opacity:1;transform:scale(1) rotate(0);}
+.itachi-olhos.olhar-fixo .itachi-iris{transition:transform .35s ease;transform:translate(0,0);}
+.itachi-sangue{position:absolute;z-index:5;top:72%;left:51%;width:8px;height:0;border-radius:40% 45% 60% 65%;background:linear-gradient(90deg,#3e0007,#ae0618 40%,#4d000a 85%);box-shadow:1px 0 2px #220006, inset 1px 0 1px #f1344380;opacity:0;transform-origin:top;}
+.itachi-olhos.sangrando .itachi-sangue{opacity:var(--blood-amount,.7);animation:itachi-blood var(--blood-duration,.6s) ease-in forwards;}
+.itachi-olhos.sangrando .itachi-olho:nth-child(2) .itachi-sangue{animation-delay:.16s;opacity:calc(var(--blood-amount,.7)*.5);}
+@keyframes itachi-blood{0%{height:0;transform:translateY(0) scaleX(1)}55%{height:25px}100%{height:clamp(32px,5vw,75px);transform:translateY(8px) scaleX(.75)}}
+.itachi-olhos.olhos-desaparecendo{animation:itachi-eye-fade var(--eye-fade,.5s) ease-in forwards;}
+@keyframes itachi-eye-fade{from{opacity:var(--eye-opacity,.5);filter:blur(0)}to{opacity:0;filter:blur(12px)}}
+/* Faixa luminosa e chamas escuras acompanham a máscara ascendente do card. */
+.dossie.queimando:after{background:repeating-radial-gradient(ellipse at 50% 95%,#050207 0 9px,#1e0310 12px 21px,#3a0714 23px 26px,transparent 33px 49px);opacity:var(--fire-height,.55);filter:blur(5px);mix-blend-mode:multiply;}
+@media(prefers-reduced-motion:reduce){.itachi-olhos.sangrando .itachi-sangue,.itachi-olhos.olhos-desaparecendo{animation:none!important}}
+
+/* FASE 4.3: menu compacto, com foco na informação selecionada. */
+.dossie-menu-toggle{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;margin:16px 0 0;padding:10px 14px;border:1px solid #923849;border-radius:11px;background:#281019;color:#fff;font:600 14px system-ui;cursor:pointer;text-align:left;touch-action:manipulation}
+#dossie-menu-current{margin-left:auto;font-size:12px;color:#f1a5ad;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dossie-menu[hidden]{display:none!important}
+.dossie-menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));max-height:min(40dvh,320px);overflow-y:auto;margin:0 0 12px;animation:menu-open .22s ease-out}
+.dossie-menu button{min-height:42px;text-align:left;touch-action:manipulation}
+@keyframes menu-open{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+.dossie-detalhe:focus{outline:2px solid #b94658;outline-offset:3px}
+/* Os dois olhos são espelhados como anatomia, sem inverter a textura da íris. */
+.itachi-olho-conjunto{position:relative;width:clamp(90px,17vw,210px);height:clamp(42px,8vw,98px);flex:none}
+.itachi-olho-conjunto .itachi-olho{width:100%;height:100%;transform:scaleX(-1) skewX(-6deg)}
+.itachi-olho-conjunto:nth-child(2) .itachi-olho{transform:skewX(-6deg)}
+/* Sangue fora do recorte do globo ocular: parte da pálpebra e desce pela tela. */
+.itachi-olho-conjunto .itachi-sangue{position:absolute;top:83%;left:47%;width:var(--blood-width,7px);height:var(--blood-reach,50dvh);overflow:visible;z-index:8;opacity:0;pointer-events:none;transform:none;background:none;box-shadow:none}
+.itachi-sangue .sangue-rastro{display:block;width:100%;height:100%;border-radius:40% 35% 65% 60%;transform:scaleY(0);transform-origin:top;background:linear-gradient(90deg,#350007 0%,#8e0010 25%,#d01928 45%,#510008 85%);box-shadow:1px 0 2px #150003,inset 1px 0 1px #ff687755;clip-path:polygon(22% 0,88% 0,68% 15%,100% 36%,67% 59%,84% 82%,45% 100%,12% 82%,33% 55%,5% 31%)}
+.itachi-sangue .sangue-gota{position:absolute;left:0;top:0;width:calc(var(--blood-width,7px)*1.4);height:calc(var(--blood-width,7px)*2);border-radius:60% 60% 65% 65%;background:radial-gradient(circle at 35% 25%,#e53743,#78000e 65%,#2c0005);opacity:0}
+.itachi-olhos.sangrando .itachi-sangue{opacity:var(--blood-amount,.7);animation:none}
+.itachi-olhos.sangrando .sangue-rastro{animation:blood-trail var(--blood-duration,1.8s) cubic-bezier(.3,.08,.55,1) forwards}
+.itachi-olhos.sangrando .sangue-gota{animation:blood-drop var(--blood-duration,1.8s) cubic-bezier(.3,.08,.55,1) forwards}
+.itachi-olhos.sangrando .itachi-olho-conjunto:nth-child(2) .sangue-rastro,.itachi-olhos.sangrando .itachi-olho-conjunto:nth-child(2) .sangue-gota{animation-delay:.18s}
+@keyframes blood-trail{0%,8%{transform:scaleY(0)}23%{transform:scaleY(.04)}100%{transform:scaleY(1)}}
+@keyframes blood-drop{0%,8%{opacity:0;top:0}15%{opacity:1}100%{opacity:1;top:calc(var(--blood-reach,50dvh) - 9px)}}
+@media(max-width:600px){.dossie{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 24px);padding:16px!important;margin:12px auto;box-sizing:border-box}.dossie-menu{grid-template-columns:1fr 1fr}.itachi-olhos{gap:clamp(20px,9vw,65px);transform:translateY(-25dvh) scale(var(--eye-scale,1))}.dossie h2{font-size:clamp(22px,6vw,30px)}}
+@media(max-width:360px){.dossie-menu{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.dossie-menu,.itachi-olhos.sangrando .sangue-rastro,.itachi-olhos.sangrando .sangue-gota{animation:none!important}.itachi-olhos.sangrando .sangue-rastro{transform:scaleY(1)}}
+
+/* Fase 4.4: fogo independente do card e ocultação terminal à prova de rebote. */
+.amaterasu-canvas{position:fixed;z-index:10000;pointer-events:none;display:block;overflow:visible;filter:drop-shadow(0 0 7px rgba(45,9,55,.35));}
+.dossie.queimando{animation:none!important;will-change:clip-path;}
+.dossie.queimando::after{display:none!important;animation:none!important;}
+.dossie.amaterasu-consumido{opacity:0!important;visibility:hidden!important;pointer-events:none!important;clip-path:inset(0 0 100% 0)!important;animation:none!important;}
+@media(prefers-reduced-motion:reduce){.amaterasu-canvas{display:none!important;}}
+
+/* Fase 4.5 — áudio responsivo e controles acessíveis. */
+#audio-toggle{position:fixed;right:12px;bottom:12px;z-index:80;border:1px solid #a94357;border-radius:999px;background:#241016;color:white;padding:12px 16px;cursor:pointer;min-height:44px} .audio-message{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.audio-message button{background:#781c30;color:white;border:1px solid #c15b6a;border-radius:9px;padding:12px 18px;min-height:44px;cursor:pointer}.audio-message p{flex-basis:100%;font-size:.9rem} 
+
+/* Fase 4.9 — olhos proporcionais e sangramento SVG independente. */
+.itachi-olhos{gap:clamp(14px,6vw,95px);transform:translateY(clamp(-165px,-15vh,-75px)) scale(var(--eye-scale,1));}
+.itachi-olho-conjunto{width:clamp(112px,24vw,205px);height:auto;aspect-ratio:2.15/1;}
+.itachi-olho-conjunto .itachi-olho{height:100%;}
+.itachi-iris{width:65%;height:auto;aspect-ratio:1;left:17.5%;top:50%;margin-top:-32.5%;}
+.itachi-olho-conjunto .itachi-sangue{top:77%;width:36px;height:55dvh;left:43%;opacity:0;overflow:visible;background:none;box-shadow:none;}
+.sangue-svg{display:block;width:100%;height:100%;overflow:visible;filter:drop-shadow(1px 1px 1px #240006);}
+.itachi-olhos.sangrando .itachi-sangue{animation:none!important;}
+.itachi-olhos.olhos-desaparecendo{animation:none!important;opacity:var(--eye-opacity,.5);filter:none;}
+.itachi-olhos.olhos-desaparecendo .itachi-olho{animation:itachi-eye-fade var(--eye-fade,.5s) ease-in forwards;}
+.itachi-olhos.sangue-desaparecendo .itachi-sangue{transition:opacity var(--blood-fade,1.6s) ease-in;opacity:0!important;}
+@media(max-width:600px){.itachi-olhos{gap:clamp(8px,4vw,20px);transform:translateY(clamp(-130px,-16dvh,-65px)) scale(var(--eye-scale,1));}.itachi-olho-conjunto{width:clamp(105px,35vw,170px);aspect-ratio:2.15/1}.itachi-iris{width:62%;left:19%;margin-top:-31%;}}

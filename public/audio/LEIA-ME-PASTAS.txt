@@ -1,0 +1,18 @@
+PASTAS DE AUDIO - JAVAS EFFECTS LAB
+
+Fundo geral:
+  audio/fundo/musica-1.mp3
+
+Para cada personagem (itachi, pain, konan, kisame, deidara, sasori, hidan, kakuzu, zetsu, obito):
+  audio/NOME/ambiente/tema-1.mp3
+  audio/NOME/mensagens/mensagem-1.mp3
+
+No editor, use o caminho RELATIVO a site/, como:
+  Destino: Itachi
+  Categoria: Mensagem do dia
+  Caminho: audio/itachi/mensagens/mensagem-1.mp3
+
+Arquivo existente na raiz de audio/itachi/ tambem pode ser usado:
+  audio/itachi/mensagem-1.mp3
+
+As pastas estao vazias, sem MP3 incluidos. Arquivos .gitkeep mantem as pastas no GitHub.

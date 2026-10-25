@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hello World — Cortina Akatsuki</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#8d1521"><link rel="apple-touch-icon" href="./icons/icon-192.png">
+</head>
+<body>
+  <!-- A cortina WebGL é desenhada neste elemento. -->
+  <div id="cortina" aria-hidden="true"></div>
+  <div id="efeito-personagem" class="efeito-personagem" aria-hidden="true"></div>
+  <main class="conteudo">
+    <h1 id="titulo">Hello World!</h1>
+    <p id="paragrafo1">Estou aprendendo HTML, CSS e JavaScript.</p>
+    <p id="paragrafo2">Movimente o cursor para interagir com a cortina.</p>
+    <button class="botao" id="botao" type="button">Clique aqui</button>
+    <!-- Pergaminho revelado após a explosão do botão. -->
+    <section id="pergaminho" class="pergaminho" aria-labelledby="titulo-pergaminho" hidden>
+      <div class="rolo rolo-superior" aria-hidden="true"><span class="corda corda-esquerda"></span><span class="corda corda-direita"></span></div>
+      <div class="pergaminho-folha">
+        <div class="pergaminho-conteudo">
+          <span class="pergaminho-selo">暁 · AKATSUKI</span>
+          <h2 id="titulo-pergaminho">Os membros da Akatsuki</h2>
+          <p class="pergaminho-subtitulo">A organização da Lua Vermelha</p>
+          <ol class="lista-membros">
+                        <li><button class="membro-link" type="button" data-personagem="pain">Pain (Nagato)</button></li>
+            <li><button class="membro-link" type="button" data-personagem="konan">Konan</button></li>
+            <li><button class="membro-link" type="button" data-personagem="itachi">Itachi Uchiha</button></li>
+            <li><button class="membro-link" type="button" data-personagem="kisame">Kisame Hoshigaki</button></li>
+            <li><button class="membro-link" type="button" data-personagem="deidara">Deidara</button></li>
+            <li><button class="membro-link" type="button" data-personagem="sasori">Sasori</button></li>
+            <li><button class="membro-link" type="button" data-personagem="hidan">Hidan</button></li>
+            <li><button class="membro-link" type="button" data-personagem="kakuzu">Kakuzu</button></li>
+            <li><button class="membro-link" type="button" data-personagem="zetsu">Zetsu</button></li>
+            <li><button class="membro-link" type="button" data-personagem="obito">Tobi (Obito Uchiha)</button></li>
+          </ol>
+          <p class="pergaminho-historico">Fundador: Yahiko · Ex-integrante: Orochimaru</p>
+        </div>
+      </div>
+      <div class="rolo rolo-inferior" aria-hidden="true"></div>
+    </section>
+    <!-- Dossiê: abre somente após o pergaminho se fechar. -->
+    <section id="dossie" class="dossie" role="dialog" aria-modal="true" aria-labelledby="dossie-nome" hidden>
+      <div class="dossie-topo"><span>暁 · DOSSIÊ AKATSUKI</span><button id="fechar-dossie" class="dossie-fechar" type="button" aria-label="Fechar dossiê">×</button></div>
+      <div class="dossie-simbolo" aria-hidden="true">暁</div>
+      <h2 id="dossie-nome"></h2><p id="dossie-origem" class="dossie-origem"></p>
+      <button type="button" id="dossie-menu-toggle" class="dossie-menu-toggle" aria-controls="dossie-menu" aria-expanded="false">☰ <span>Explorar personagem</span> <span id="dossie-menu-current"></span></button>
+      <nav class="dossie-menu" id="dossie-menu" aria-label="Assuntos do personagem" hidden></nav>
+      <div id="dossie-detalhe" class="dossie-detalhe" tabindex="0" aria-live="polite"></div>
+      <div class="dossie-legacy" hidden><p id="dossie-habilidades"></p><p id="dossie-historia"></p></div>
+      <button id="voltar-pergaminho" class="dossie-voltar" type="button">Voltar ao pergaminho</button>
+    </section>
+  </main>
+  <button id="audio-toggle" type="button" aria-pressed="false" title="Ativar ou silenciar áudio">♪ Ativar áudio</button>
+  <div id="aviso-webgl" role="status" hidden></div>
+  <button id="reset-app-data" type="button" style="position:fixed;bottom:12px;left:12px;z-index:10000;font:12px system-ui">Limpar dados locais</button>
+  <script src="./pwa.js"></script>
+  <!-- GSAP anima o tremor, a explosão e a abertura do pergaminho. -->
+  <script src="./vendor/gsap.min.js"></script>
+  <script src="./personagens.js" defer></script>
+  <script src="./audio-player.js" defer></script>
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
