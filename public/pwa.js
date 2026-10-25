@@ -32,10 +32,16 @@
     navigator.serviceWorker.register('./sw.js', {scope: './'}).catch(console.error);
   }
   document.querySelector('#reset-app-data').addEventListener('click', async () => {
+    const sync = await import('./config-store.mjs');
+    if (await sync.hasDrafts() && !confirm('Existem rascunhos ainda não sincronizados. Esta limpeza irá apagá-los. Deseja continuar mesmo assim?')) return;
     if (!confirm('Apagar os dados e o conteúdo offline deste aplicativo? Será necessário estar online para carregar novamente.')) return;
     const button = document.querySelector('#reset-app-data');
     button.disabled = true;
     try {
+      await sync.clearConfigurationData();
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('jel-auth-ljjdxwbcysxkowymomql')) localStorage.removeItem(key);
+      }
       for (const key of Object.keys(localStorage)) {
         if (key === 'javas-effects-lab-v1' || key === 'javas-audio-paths-v1' || key.startsWith('javas-audio-day-')) localStorage.removeItem(key);
       }

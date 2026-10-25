@@ -1,30 +1,23 @@
 # JAVAS EFFECTS LAB — Akatsuki
 
-Pacote estático preparado a partir do site.zip fornecido. O ZIP original permanece intacto. O editor e o servidor local continuam apenas no original; não fazem parte deste pacote.
+Aplicação estática hospedada exclusivamente no GitHub Pages: https://yzkbr.github.io/javas-effects-lab/ . Animações, personagens, imagens e MP3 originais preservados.
 
-## Publicação
+## Configurações e editor
 
-1. Crie `yzkbr/javas-effects-lab` como **privado**, sem README inicial nem outros arquivos. Se já existir, confira seu conteúdo antes de enviar este pacote.
-2. Em Settings → Pages, escolha **GitHub Actions** como origem. A conta precisa de um plano que permita Pages em repositórios privados. Não torne o repositório público sem autorização do proprietário.
-3. Envie esta pasta inteira, incluindo `.github/workflows/pages.yml`, para a branch `main`. O fluxo publica somente `public/`.
-4. Aguarde o fluxo no Actions e use a URL efetivamente retornada pelo deploy. Confira o site, o áudio do Itachi e `/editor.html` (deve retornar 404).
+O editor original em public/editor.html usa login Google via Supabase e autorização por UID no banco. HTML e JavaScript são públicos; autenticação e políticas RLS concedem permissão para gravar. Não existe servidor Node publicado.
 
-Para continuar pelo computador, instale o GitHub CLI seguindo https://cli.github.com/ e abra um novo terminal. Autentique sem compartilhar tokens no chat:
+A ativação do Google e a aprovação inicial do UID estão descritas em [SUPABASE-SETUP.md](./SUPABASE-SETUP.md). O acesso começa bloqueado, sem administradores pré-cadastrados. Cadastre credenciais OAuth apenas no painel Supabase. O navegador recebe somente URL e chave publishable.
 
-```powershell
-gh auth login --hostname github.com --git-protocol https --web
-gh auth setup-git
-gh auth status
-```
+Configurações públicas e caminhos MP3 são compartilhados via Supabase. IndexedDB mantém cache e rascunhos por UID. Salvar publica com controle de versão; conflitos preservam as edições locais. Os MP3 continuam hospedados no Pages.
 
-Informe ao assistente quando a autenticação estiver concluída para que ele confira o repositório e prossiga. Não execute comandos para sobrescrever um repositório existente.
+## PWA
 
-## PWA e armazenamento
+Manifesto, ícones e service worker preservados. O site principal permite recarga offline após uma visita online. O editor exige validação online para abrir uma sessão. Respostas Supabase, URLs com parâmetros e a página do editor ficam fora do cache de navegação pública. A limpeza pede confirmação adicional quando há rascunhos. Desinstalar o PWA não garante limpeza dos dados.
 
-Manifesto com ícones PNG 192/512, início e escopo relativos. Service worker guarda os arquivos públicos, imagens, bibliotecas e MP3 em Cache Storage após a primeira visita online bem-sucedida. O catálogo de áudio é persistido em IndexedDB; configurações legadas continuam em localStorage para preservar o comportamento existente.
+## Publicação e verificações
 
-O botão **Limpar dados locais** pede confirmação e remove apenas as chaves, o banco e os caches identificados como pertencentes a este aplicativo. Feche outras abas se a limpeza ficar bloqueada. Desinstalar um PWA não garante a remoção dos dados do navegador.
+O fluxo .github/workflows/pages.yml publica apenas public/ ao atualizar main. Mantenha GitHub Actions como origem em Settings → Pages. Incremente a versão do cache em public/sw.js ao alterar recursos estáticos.
 
-Ao atualizar os arquivos, altere a versão `v1` do cache em `public/sw.js` para que caches antigos sejam descartados após a ativação da nova versão. A instalação e o funcionamento offline ainda precisam ser verificados na URL HTTPS publicada e nos navegadores de destino.
+Execute os testes com: node --test tests/config-sync.test.mjs . O arquivo tests/rls.sql verifica autorização em uma transação revertida; use apenas como administrador em ambiente controlado. A migração em supabase/migrations corresponde à versão aplicada via MCP.
 
-Bibliotecas originais: GSAP (distribuição @3 baixada do CDN usado no original) e Three.js 0.160.1, agora servidas localmente. Os avisos de licença presentes nos arquivos foram preservados. Não foram criados novos desenhos de personagens.
+Supabase JS fixado em 2.118.0; GSAP e Three.js locais. Avisos de licença presentes nos arquivos distribuídos preservados.

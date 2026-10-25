@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAVAS EFFECTS LAB — Editor</title>
+  <link rel="stylesheet" href="./editor.css">
+<meta name="referrer" content="no-referrer"><link rel="manifest" href="./manifest.webmanifest"></head>
+<body>
+<section id="auth-gate" class="card" style="margin:16px" aria-label="Acesso administrativo">
+ <p id="auth-status" role="status">Verificando autenticação…</p>
+ <button id="google-login" type="button">Entrar com Google</button>
+ <button id="google-logout" type="button" hidden>Sair</button>
+ <a href="./index.html">Voltar ao site</a>
+</section>
+<div id="editor-panel" hidden>
+  <header class="topbar">
+    <div><strong>JAVAS <span>EFFECTS LAB</span></strong><small>Central de controle • edição ao vivo</small></div>
+    <div class="top-actions">
+      <span id="status" role="status">Carregando…</span>
+      <button id="load-remote" type="button">Carregar versão remota</button><a href="./modelo.html" target="_blank" rel="noopener">Abrir modelo 3D ↗</a><button id="abrir-preview" type="button">Abrir visualização ↗</button>
+      <button id="salvar" class="primary" type="button">Salvar</button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="eyebrow">CONTROLES</p>
+      <nav id="navegacao" aria-label="Abas do editor"></nav>
+      <div class="sidebar-note">As alterações são enviadas imediatamente para a visualização aberta em outra janela.</div>
+    </aside>
+    <main class="main">
+      <div class="intro"><p class="eyebrow">PAINEL INDEPENDENTE</p><h1>Personalize cada detalhe.</h1><p>Modifique os valores abaixo e veja o resultado no <strong>index.html</strong> sem recarregar a página.</p></div>
+      <div class="notice">Use <strong>Abrir visualização</strong> e mantenha as duas páginas em janelas separadas no mesmo navegador. O botão <strong>Salvar</strong> publica as alterações para todos os dispositivos. Rascunhos ficam neste dispositivo até a sincronização.</div>
+      <div id="categorias" aria-live="off"></div>
+      <section class="card" id="gerenciador-audio" hidden>
+        <h2>🎵 Biblioteca de áudios por caminho</h2>
+        <p>Coloque os MP3 dentro da pasta <code>site/audio/</code> e cadastre abaixo o caminho relativo ao <code>index.html</code>. Não é necessário servidor Node.js nem upload.</p>
+        <div class="audio-admin">
+          <label>Destino <select id="audio-destino"></select></label>
+          <label>Categoria <select id="audio-categoria"><option value="ambiente">Música ambiente</option><option value="mensagens">Mensagem do dia</option></select></label>
+          <label style="grid-column:1/-1">Caminho relativo do MP3 <input id="audio-caminho" type="text" placeholder="audio/itachi/mensagem-1.mp3" spellcheck="false" autocomplete="off" style="width:100%;padding:12px;border-radius:8px;background:#0d1525;color:white;border:1px solid #53617b"></label>
+          <button type="button" id="audio-enviar">Adicionar caminho</button>
+          <button type="button" id="audio-testar">▶ Testar caminho</button>
+          <button type="button" id="audio-atualizar">Atualizar lista</button>
+          <button type="button" id="audio-exportar">Exportar biblioteca JSON</button>
+        </div>
+        <p id="audio-status" role="status"></p><div id="audio-lista"></div>
+        <p><small>Os caminhos são sincronizados ao clicar Salvar. Os arquivos MP3 precisam existir na pasta audio do repositório; este painel não envia arquivos.</small></p>
+      </section>
+      <section class="card tools" id="ferramentas" hidden><h2>Configurações</h2><p>Importe, exporte ou restaure os valores do projeto.</p>
+        <div class="tool-buttons">
+          <button id="exportar" type="button">Exportar JSON</button>
+          <button id="importar" type="button">Importar JSON</button>
+          <button id="restaurar" class="danger" type="button">Restaurar padrão</button>
+          <input id="arquivo-importacao" type="file" accept=".json,application/json" hidden>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="./vendor/supabase-2.118.0.js"></script>
+<script type="module" src="./editor-auth.mjs"></script>
+</body>
+</html>

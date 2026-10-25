@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {ConfigurationSync} from '../public/config-sync.mjs';
+function setup(uid='admin-A') {
+  const rows=new Map();let remote={config_key:'site',version:1,config_value:{title:'original'}};let writes=0,beforeSave;
+  const store={read:async key=>structuredClone(rows.get(key)),write:async(key,value)=>rows.set(key,structuredClone(value)),mutate:async(key,fn)=>{const value=fn(structuredClone(rows.get(key)));if(value===undefined)rows.delete(key);else rows.set(key,structuredClone(value));return structuredClone(value);}};
+  const query={update(value){this.value=value;return this;},eq(key,value){if(key==='version')this.version=value;return this;},async select(){writes++;await beforeSave?.();if(this.version!==remote.version)return {data:[],error:null};remote={...remote,config_value:this.value.config_value,version:remote.version+1};return {data:[structuredClone(remote)],error:null};}};
+  const client={from:()=>query};
+  const sync=new ConfigurationSync(uid,client,store,async()=>structuredClone(remote));
+  return {sync,store,client,get remote(){return remote;},set remote(value){remote=value;},get writes(){return writes;},set beforeSave(value){beforeSave=value;}};
+}
+test('draft survives restart and is not published before Save',async()=>{const x=setup();await x.sync.stage('site',{title:'draft'},1);const restarted=new ConfigurationSync('admin-A',x.client,x.store,async()=>x.remote);assert.equal((await restarted.draft('site')).value.title,'draft');assert.equal((await restarted.flush('site')).status,'clean');assert.equal(x.writes,0);});
+test('successful queued save advances the version and clears only its draft',async()=>{const x=setup();await x.sync.stage('site',{title:'new'},1);await x.sync.queue('site');const result=await x.sync.flush('site');assert.equal(result.status,'saved');assert.equal(x.remote.version,2);assert.equal(await x.sync.draft('site'),undefined);});
+test('newer remote version produces conflict without writing or discarding edits',async()=>{const x=setup();await x.sync.stage('site',{title:'mine'},1);await x.sync.queue('site');x.remote={...x.remote,version:2};assert.equal((await x.sync.flush('site')).status,'conflict');assert.equal(x.writes,0);assert.equal((await x.sync.draft('site')).value.title,'mine');});
+test('offline or transport failure preserves queued edits',async()=>{const x=setup();await x.sync.stage('site',{title:'offline'},1);await x.sync.queue('site');x.sync.fetchLatest=async()=>{throw Error('offline')};await assert.rejects(x.sync.flush('site'),/offline/);assert.equal((await x.sync.draft('site')).queued,true);});
+test('server compare-and-swap catches a race after the version check',async()=>{const x=setup();await x.sync.stage('site',{title:'mine'},1);await x.sync.queue('site');x.beforeSave=async()=>{x.remote={...x.remote,version:2}};assert.equal((await x.sync.flush('site')).status,'conflict');assert.equal((await x.sync.draft('site')).value.title,'mine');});
+test('editing during a save preserves newer unsynchronized content',async()=>{const x=setup();await x.sync.stage('site',{title:'first'},1);await x.sync.queue('site');x.beforeSave=async()=>{await x.sync.stage('site',{title:'second'},1)};await x.sync.flush('site');const draft=await x.sync.draft('site');assert.equal(draft.value.title,'second');assert.equal(draft.baseVersion,2);assert.equal(x.remote.config_value.title,'first');});
+test('another account cannot pick up an administrator draft',async()=>{const x=setup();await x.sync.stage('site',{title:'private draft'},1);const other=new ConfigurationSync('other-user',x.client,x.store);assert.equal(await other.draft('site'),undefined);});

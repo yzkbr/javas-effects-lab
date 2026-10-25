@@ -1,8 +1,8 @@
 'use strict';
 const BASE = new URL('./', self.location.href);
 const PREFIX = 'jel-pages-' + BASE.pathname + '-';
-const CACHE = PREFIX + 'v1';
-const FILES = ["./","./audio/itachi/mensagem-1.mp3","./audio-catalog.json","./audio-player.js","./config.json","./icons/icon-192.png","./icons/icon-512.png","./imagens/08_cordao_vermelho.png","./imagens/estampa.png","./imagens/mangekyo-itachi.png","./imagens/mascara-borda.png","./imagens/olhos-itachi-referencia.png","./imagens/papel-feudal.jpg","./imagens/rolo-akatsuki.png","./imagens/rolo-sem-pingente.png","./index.html","./manifest.webmanifest","./personagens.js","./pwa.js","./script.js","./style.css","./vendor/gsap.min.js","./vendor/three.module.js"];
+const CACHE = PREFIX + 'v2-config-sync';
+const FILES = ["./","./audio/itachi/mensagem-1.mp3","./audio-catalog.json","./audio-editor.js","./audio-player.js","./cloud-settings.mjs","./config-store.mjs","./config-sync.mjs","./config.json","./editor.css","./editor.js","./icons/icon-192.png","./icons/icon-512.png","./imagens/08_cordao_vermelho.png","./imagens/estampa.png","./imagens/mangekyo-itachi.png","./imagens/mascara-borda.png","./imagens/olhos-itachi-referencia.png","./imagens/papel-feudal.jpg","./imagens/rolo-akatsuki.png","./imagens/rolo-sem-pingente.png","./index.html","./manifest.webmanifest","./personagens.js","./pwa.js","./script.js","./style.css","./vendor/gsap.min.js","./vendor/supabase-2.118.0.js","./vendor/three.module.js"];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES.map(name => new URL(name,BASE).href))));
 });
@@ -11,7 +11,7 @@ self.addEventListener('activate', event => {
 });
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.origin !== BASE.origin || !url.pathname.startsWith(BASE.pathname)) return;
+  if (event.request.method !== 'GET' || url.origin !== BASE.origin || !url.pathname.startsWith(BASE.pathname) || url.search) return;
   const relative = url.pathname.slice(BASE.pathname.length);
   if (!FILES.some(name => new URL(name, BASE).pathname === url.pathname)) return;
   if (event.request.headers.has('range')) {

@@ -1,3 +1,5 @@
+import {read as readConfiguration} from './config-store.mjs';
+import {latestPublic, watchPublic} from './config-sync.mjs';
 /* Trilha geral, trilhas por personagem e mensagens com prioridade exclusiva.
    Autoplay é iniciado apenas após interação permitida pelo navegador. */
 (()=>{'use strict';
@@ -15,8 +17,11 @@ function setCharacter(id){if(message){message.pause();message=null}character=id;
 async function reload(){
   // O catálogo exportado funciona em hospedagem estática (inclusive GitHub Pages).
   let published=[];try{published=await window.JAVAS_CATALOG.read()}catch{}
+  let remote=await readConfiguration('public:audio_catalog').catch(()=>null);
+  try{remote=await latestPublic('audio_catalog')}catch{}
   try{const r=await fetch('./audio-catalog.json',{cache:'no-store'});if(r.ok){const data=await r.json();if(Array.isArray(data)){published=data;try{await window.JAVAS_CATALOG.write(data)}catch{}}}}catch{}
-  let local=[];try{const data=JSON.parse(localStorage.getItem(PATH_KEY));if(Array.isArray(data))local=data}catch{}
+  if(remote)published=remote.config_value;
+  let local=[];try{const data=JSON.parse(localStorage.getItem(PATH_KEY));if(!remote&&Array.isArray(data))local=data}catch{}
   // Prioriza o cadastro local; não depende de /api/audio.
   const merged=new Map();for(const item of [...published,...local]){
     if(item&&typeof item.url==='string'&&/^audio\/[a-z0-9_\-/ ]+\.mp3$/i.test(item.url)&&!item.url.includes('..')){
@@ -29,5 +34,5 @@ btn.onclick=()=>{muted=!muted;activated=true;btn.setAttribute('aria-pressed',Str
 window.addEventListener('pointerdown',()=>{if(!activated&&settings().autoplayAfterGesture){activated=true;btn.textContent='♫ Silenciar áudio';btn.setAttribute('aria-pressed','true');startAmbient()}},{once:true});
 window.addEventListener('storage',e=>{if(e.key===KEY){if(ambient)ambient.volume=volume('ambient');if(message)message.volume=volume('message')}});
 window.addEventListener('focus',reload);window.addEventListener('storage',e=>{if(e.key===PATH_KEY)reload()});document.addEventListener('visibilitychange',()=>{if(document.hidden){ambient?.pause()}else if(ambient&&!message&&!muted)ambient.play().catch(()=>{})});
-window.JAVAS_AUDIO={playMessage,stopMessage,setCharacter,reload};reload();
+window.JAVAS_AUDIO={playMessage,stopMessage,setCharacter,reload};reload();watchPublic('audio_catalog',reload);
 })();

@@ -1,4 +1,6 @@
 /* Visualização independente: recebe controles do editor via BroadcastChannel. */
+import {read as readConfiguration} from './config-store.mjs';
+import {watchPublic} from './config-sync.mjs';
 const STORAGE='javas-effects-lab-v1';
 const CHANNEL='javas-effects-live-v1';
 const canal=new BroadcastChannel(CHANNEL);
@@ -661,7 +663,9 @@ async function start(){
   defaults=await response.json();
   let saved=null;
   try{saved=JSON.parse(localStorage.getItem(STORAGE));}catch{}
-  apply(saved||defaults);
+  const cached=await readConfiguration('public:site').catch(()=>null);
+  apply(cached?.config_value||saved||defaults);
+  watchPublic('site',record=>apply(record.config_value));
   canal.postMessage({type:'request'});
   try {await startCurtain();console.log('Cortina WebGL ativa.');}
   catch(err){console.error('WebGL indisponível:',err);aviso.hidden=false;aviso.textContent='A estampa está em modo CSS. Confira o Console (F12) para ver o erro do WebGL.';}
