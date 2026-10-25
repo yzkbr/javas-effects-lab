@@ -170,8 +170,15 @@ export async function startEditor(client,uid) {
     let pending=await synchronizer.draft(name);
     let legacy=null;
     try{legacy=JSON.parse(localStorage.getItem(name==='site'?STORAGE:'javas-audio-paths-v1'));}catch{}
-    if(!pending&&legacy&&JSON.stringify(legacy)!==JSON.stringify(record.config_value)){
-      pending=await synchronizer.stage(name,legacy,record.version);
+    const migrationKey='legacy-migrated:'+uid+':'+name;
+    if(!await store.read(migrationKey)){
+      if(legacy&&JSON.stringify(legacy)!==JSON.stringify(record.config_value)){
+        await store.write('legacy-backup:'+uid+':'+name,legacy);
+        // Only unmodified initial seed data can be replaced by legacy migration.
+        // Later remote revisions are authoritative; real edits live in UID-scoped drafts.
+        if(!pending&&record.version===1)pending=await synchronizer.stage(name,legacy,record.version);
+      }
+      await store.write(migrationKey,true);
     }
     const value=pending?.value??record.config_value;
     if(name==='site')state=merge(defaults,value);
@@ -179,6 +186,15 @@ export async function startEditor(client,uid) {
   }
   render();
   emit(false);
+  const backupButton=document.createElement('button');
+  backupButton.type='button';backupButton.textContent='Exportar cópia local anterior';
+  backupButton.addEventListener('click',async()=>{
+    const site=await store.read('legacy-backup:'+uid+':site');
+    const audio_catalog=await store.read('legacy-backup:'+uid+':audio_catalog');
+    const url=URL.createObjectURL(new Blob([JSON.stringify({site,audio_catalog},null,2)],{type:'application/json'}));
+    const link=document.createElement('a');link.href=url;link.download='recuperacao-local-javas.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+  if(await store.read('legacy-backup:'+uid+':site')||await store.read('legacy-backup:'+uid+':audio_catalog'))document.querySelector('#ferramentas .tool-buttons').append(backupButton);
   status.textContent=(await synchronizer.draft('site')||await synchronizer.draft('audio_catalog'))?'Rascunho local recuperado • não publicado':'Configurações sincronizadas';
   window.addEventListener('javas-audio-changed',()=>{
     try{persist('audio_catalog',JSON.parse(localStorage.getItem('javas-audio-paths-v1'))||[]);status.textContent='Biblioteca alterada • clique Salvar para publicar';}
